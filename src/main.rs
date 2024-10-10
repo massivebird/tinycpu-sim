@@ -1,4 +1,4 @@
-#[derive(Default)]
+#[derive(Debug, Default)]
 struct Computer {
     memory: [i8; 16],
     register: i8,
@@ -11,7 +11,7 @@ impl Computer {
         Self::default()
     }
 
-    fn execute_instructions(&mut self, insts: &[Inst]) {
+    fn execute_instructions(&mut self, insts: [Inst; 16]) {
         for inst in insts {
             // 000    add n        [D0] <- [D0] + [n]
             // 001    and n        [D0] <- [D0] & [n]
@@ -24,17 +24,21 @@ impl Computer {
             match inst {
                 Inst::Add(n) => self.register += n,
                 Inst::And(n) => self.register &= n,
-                Inst::Shl(n) => self.memory[*n as usize] <<= 1,
-                Inst::Disp(n) => self.bcd = self.memory[*n as usize],
-                Inst::Load(n) => self.register = self.memory[*n as usize],
-                Inst::Str(n) => self.memory[*n as usize] = self.register,
-                Inst::Jmp(n) => self.pc = *n,
+                Inst::Shl(n) => self.memory[n as usize] <<= 1,
+                Inst::Disp(n) => self.bcd = self.memory[n as usize],
+                Inst::Load(n) => self.register = self.memory[n as usize],
+                Inst::Str(n) => self.memory[n as usize] = self.register,
+                Inst::Jmp(n) => self.pc = n,
                 Inst::Jz(n) => todo!(), // is z the control code?
+                Inst::None => (),
             }
+
+            self.pc += 1;
         }
     }
 }
 
+#[allow(dead_code)]
 enum Inst {
     Add(i8),
     And(i8),
@@ -44,8 +48,31 @@ enum Inst {
     Str(i8),
     Jmp(u8),
     Jz(u8),
+    None,
 }
 
 fn main() {
-    println!("Hello, world!");
+    let insts: [Inst; 16] = [
+        Inst::Add(15),
+        Inst::None,
+        Inst::None,
+        Inst::None,
+        Inst::None,
+        Inst::None,
+        Inst::None,
+        Inst::None,
+        Inst::None,
+        Inst::None,
+        Inst::None,
+        Inst::None,
+        Inst::None,
+        Inst::None,
+        Inst::None,
+        Inst::None,
+    ];
+
+    let mut c = Computer::new();
+    c.execute_instructions(insts);
+
+    dbg!(c);
 }
