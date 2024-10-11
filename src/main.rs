@@ -70,13 +70,13 @@ impl TryFrom<i8> for Inst {
             return Ok(Self::Add(value));
         }
 
-        match format!("{value:x}").chars().nth(0).unwrap() {
-            '1' => Ok(Self::And(value)),
-            '2' => Ok(Self::Shl(value as u8)),
-            '3' => Ok(Self::Disp(value)),
-            '4' => Ok(Self::Str(value)),
-            '5' => Ok(Self::Jmp(value as u8)),
-            '6' => Ok(Self::Jz(value as u8)),
+        match value.div_euclid(16) {
+            1 => Ok(Self::And(value)),
+            2 => Ok(Self::Shl(value as u8)),
+            3 => Ok(Self::Disp(value)),
+            4 => Ok(Self::Str(value)),
+            5 => Ok(Self::Jmp(value as u8)),
+            6 => Ok(Self::Jz(value as u8)),
             _ => Err(()),
         }
     }
