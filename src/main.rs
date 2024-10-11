@@ -22,7 +22,7 @@ impl Computer {
             let Ok(inst) = Inst::try_from(val) else {
                 continue;
             };
-            dbg!(&inst);
+
             // 000    add n        [D0] <- [D0] + [n]
             // 001    and n        [D0] <- [D0] & [n]
             // 010    shl n        [n] <- [n] << 1
