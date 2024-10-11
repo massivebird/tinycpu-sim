@@ -44,7 +44,21 @@ impl Computer {
             }
 
             self.pc += 1;
+            self.report();
         }
+    }
+
+    fn report(&self) {
+        for row in self.memory.as_slice().chunks(4) {
+            for val in row {
+                print!("x{val:02x} ");
+            }
+            println!();
+        }
+
+        println!("PC: x{:02x}", self.pc);
+        println!("BCD: x{:02x}", self.bcd);
+        println!();
     }
 }
 
