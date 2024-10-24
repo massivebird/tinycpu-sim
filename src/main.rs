@@ -24,9 +24,7 @@ impl Computer {
         loop {
             self.ir = self.memory[self.pc as usize];
 
-            let Ok(inst) = Inst::try_from(self.ir) else {
-                continue;
-            };
+            let inst = Inst::from(self.ir);
 
             self.pc += 1;
 
@@ -91,26 +89,24 @@ enum Inst {
     None,
 }
 
-impl TryFrom<i8> for Inst {
-    type Error = ();
-
-    fn try_from(value: i8) -> Result<Self, Self::Error> {
-        if value < 16 {
-            return Ok(Self::Add(value));
-        }
+impl From<i8> for Inst {
+    fn from(value: i8) -> Self {
+        // Ignore greatest bit [in opcode].
+        let value = value & 0x7f;
 
         let opcode = value.div_euclid(16);
         let operand = value - 16i8 * opcode;
 
         match opcode {
-            1 => Ok(Self::And(operand)),
-            2 => Ok(Self::Shl(operand as u8)),
-            3 => Ok(Self::Disp(operand)),
-            4 => Ok(Self::Load(operand)),
-            5 => Ok(Self::Str(operand)),
-            6 => Ok(Self::Jmp(operand as u8)),
-            7 => Ok(Self::Jz(operand as u8)),
-            _ => Err(()),
+            0 => Self::Add(operand),
+            1 => Self::And(operand),
+            2 => Self::Shl(operand as u8),
+            3 => Self::Disp(operand),
+            4 => Self::Load(operand),
+            5 => Self::Str(operand),
+            6 => Self::Jmp(operand as u8),
+            7 => Self::Jz(operand as u8),
+            _ => unreachable!(),
         }
     }
 }
