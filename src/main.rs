@@ -64,10 +64,10 @@ impl TinyCPU {
     fn report(&self) {
         for (idx, value) in self.memory.iter().enumerate() {
             if idx as u8 == self.pc {
-                let highlighted = format!("x{value:02}").reversed();
+                let highlighted = format!("x{value:02x}").reversed();
                 print!("{highlighted} ");
             } else {
-                print!("x{value:02} ");
+                print!("x{value:02x} ");
             }
 
             if idx != 0 && (idx + 1) % 4 == 0 {
@@ -138,9 +138,9 @@ impl TryInto<i8> for Inst {
 fn main() {
     let insts: [Inst; 16] = [
         Inst::Add(15),
-        Inst::Disp(0),
+        Inst::Str(15),
+        Inst::Disp(15),
         Inst::Jmp(0),
-        Inst::None,
         Inst::None,
         Inst::None,
         Inst::None,
