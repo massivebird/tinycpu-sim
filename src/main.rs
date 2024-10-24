@@ -1,3 +1,6 @@
+use std::thread::sleep;
+use std::time::Duration;
+
 use colored::Colorize;
 
 #[derive(Debug, Default)]
@@ -20,8 +23,14 @@ impl Computer {
         }
     }
 
-    fn run(&mut self) {
+    fn run(&mut self, tick_delay: Duration) {
+        // Report initial state. Further reporting is performed after running
+        // each instruction.
+        self.report();
+
         loop {
+            sleep(tick_delay);
+
             self.ir = self.memory[self.pc as usize];
 
             let inst = Inst::from(self.ir);
@@ -43,10 +52,7 @@ impl Computer {
                 Inst::Disp(n) => self.bcd = self.memory[n as usize],
                 Inst::Load(n) => self.register = self.memory[n as usize],
                 Inst::Str(n) => self.memory[n as usize] = self.register,
-                Inst::Jmp(n) => {
-                    self.pc = n;
-                    continue;
-                }
+                Inst::Jmp(n) => self.pc = n,
                 Inst::Jz(_n) => todo!(), // is z the control code?
                 Inst::None => (),
             }
@@ -151,5 +157,5 @@ fn main() {
 
     let mut c = Computer::new();
     c.load_instructions(insts);
-    c.run();
+    c.run(Duration::from_millis(500));
 }
