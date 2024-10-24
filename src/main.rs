@@ -1,8 +1,11 @@
+use colored::Colorize;
+
 #[derive(Debug, Default)]
 struct Computer {
     memory: [i8; 16],
     register: i8,
     bcd: i8,
+    ir: i8,
     pc: u8,
 }
 
@@ -18,10 +21,14 @@ impl Computer {
     }
 
     fn run(&mut self) {
-        for val in self.memory {
-            let Ok(inst) = Inst::try_from(val) else {
+        loop {
+            self.ir = self.memory[self.pc as usize];
+
+            let Ok(inst) = Inst::try_from(self.ir) else {
                 continue;
             };
+
+            self.pc += 1;
 
             // 000    add n        [D0] <- [D0] + [n]
             // 001    and n        [D0] <- [D0] & [n]
@@ -32,28 +39,36 @@ impl Computer {
             // 110    jmp n        pc <- n
             // 111    jz n         pc <- n if z == 1
             match inst {
-                Inst::Add(n) => self.register += n,
+                Inst::Add(n) => self.register = self.register.wrapping_add(n),
                 Inst::And(n) => self.register &= n,
                 Inst::Shl(n) => self.memory[n as usize] <<= 1,
                 Inst::Disp(n) => self.bcd = self.memory[n as usize],
                 Inst::Load(n) => self.register = self.memory[n as usize],
                 Inst::Str(n) => self.memory[n as usize] = self.register,
-                Inst::Jmp(n) => self.pc = n,
+                Inst::Jmp(n) => {
+                    self.pc = n;
+                    continue;
+                }
                 Inst::Jz(_n) => todo!(), // is z the control code?
                 Inst::None => (),
             }
 
-            self.pc += 1;
             self.report();
         }
     }
 
     fn report(&self) {
-        for row in self.memory.as_slice().chunks(4) {
-            for val in row {
-                print!("x{val:02x} ");
+        for (idx, value) in self.memory.iter().enumerate() {
+            if idx as u8 == self.pc {
+                let highlighted = format!("x{value:02}").reversed();
+                print!("{highlighted} ");
+            } else {
+                print!("x{value:02} ");
             }
-            println!();
+
+            if idx != 0 && (idx + 1) % 4 == 0 {
+                println!();
+            }
         }
 
         println!("PC: x{:02x}", self.pc);
@@ -84,13 +99,17 @@ impl TryFrom<i8> for Inst {
             return Ok(Self::Add(value));
         }
 
-        match value.div_euclid(16) {
-            1 => Ok(Self::And(value)),
-            2 => Ok(Self::Shl(value as u8)),
-            3 => Ok(Self::Disp(value - 0x30)), // value without opcode
-            4 => Ok(Self::Str(value)),
-            5 => Ok(Self::Jmp(value as u8)),
-            6 => Ok(Self::Jz(value as u8)),
+        let opcode = value.div_euclid(16);
+        let operand = value - 16i8 * opcode;
+
+        match opcode {
+            1 => Ok(Self::And(operand)),
+            2 => Ok(Self::Shl(operand as u8)),
+            3 => Ok(Self::Disp(operand)),
+            4 => Ok(Self::Load(operand)),
+            5 => Ok(Self::Str(operand)),
+            6 => Ok(Self::Jmp(operand as u8)),
+            7 => Ok(Self::Jz(operand as u8)),
             _ => Err(()),
         }
     }
@@ -118,7 +137,7 @@ fn main() {
     let insts: [Inst; 16] = [
         Inst::Add(15),
         Inst::Disp(0),
-        Inst::None,
+        Inst::Jmp(0),
         Inst::None,
         Inst::None,
         Inst::None,
@@ -137,6 +156,4 @@ fn main() {
     let mut c = Computer::new();
     c.load_instructions(insts);
     c.run();
-
-    dbg!(c);
 }
