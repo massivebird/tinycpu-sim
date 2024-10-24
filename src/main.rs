@@ -57,7 +57,7 @@ impl Computer {
         }
 
         println!("PC: x{:02x}", self.pc);
-        println!("BCD: x{:02x}", self.bcd);
+        println!("BCD: {}", self.bcd);
         println!();
     }
 }
@@ -87,7 +87,7 @@ impl TryFrom<i8> for Inst {
         match value.div_euclid(16) {
             1 => Ok(Self::And(value)),
             2 => Ok(Self::Shl(value as u8)),
-            3 => Ok(Self::Disp(value)),
+            3 => Ok(Self::Disp(value - 0x30)), // value without opcode
             4 => Ok(Self::Str(value)),
             5 => Ok(Self::Jmp(value as u8)),
             6 => Ok(Self::Jz(value as u8)),
@@ -117,7 +117,7 @@ impl TryInto<i8> for Inst {
 fn main() {
     let insts: [Inst; 16] = [
         Inst::Add(15),
-        Inst::None,
+        Inst::Disp(0),
         Inst::None,
         Inst::None,
         Inst::None,
