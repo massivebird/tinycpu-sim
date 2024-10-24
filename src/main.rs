@@ -4,7 +4,7 @@ use std::time::Duration;
 use colored::Colorize;
 
 #[derive(Debug, Default)]
-struct Computer {
+struct TinyCPU {
     memory: [i8; 16],
     register: i8,
     bcd: i8,
@@ -12,7 +12,7 @@ struct Computer {
     pc: u8,
 }
 
-impl Computer {
+impl TinyCPU {
     fn new() -> Self {
         Self::default()
     }
@@ -155,7 +155,7 @@ fn main() {
         Inst::None,
     ];
 
-    let mut c = Computer::new();
+    let mut c = TinyCPU::new();
     c.load_instructions(insts);
     c.run(Duration::from_millis(500));
 }
