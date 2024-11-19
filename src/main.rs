@@ -100,8 +100,8 @@ impl From<i8> for Inst {
         // Ignore greatest bit [in opcode].
         let value = value & 0x7f;
 
-        let opcode = value.div_euclid(16);
-        let operand = value - 16i8 * opcode;
+        let opcode = value >> 4;
+        let operand = value & 0x0f;
 
         match opcode {
             0 => Self::Add(operand),
